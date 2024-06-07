@@ -18,6 +18,11 @@ db.init_app(app)
 
 api = Api(app)
 
+#@app.before_request
+#def check_logged_in():
+  #  if not session['user_id']:
+    #    return {'error': 'error: you must be logged in'}, 401
+
 class ClearSession(Resource):
 
     def delete(self):
@@ -87,12 +92,19 @@ class CheckSession(Resource):
 class MemberOnlyIndex(Resource):
     
     def get(self):
-        pass
+        if not session['user_id']:
+            return {'error': 'error: you must be logged in'}, 401
+        else:
+            return [article.to_dict() for article in Article.query.all() if article.is_member_only == True] ,200
 
 class MemberOnlyArticle(Resource):
     
     def get(self, id):
-        pass
+        if not session['user_id']:
+            return {'error': 'error: you must be logged in'}, 401
+        else:
+            return Article.query.filter_by(id = session['user_id']).first().to_dict() ,200
+         
 
 api.add_resource(ClearSession, '/clear', endpoint='clear')
 api.add_resource(IndexArticle, '/articles', endpoint='article_list')
